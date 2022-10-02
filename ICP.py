@@ -169,7 +169,6 @@ class GeneralIcp():
         # diagonal_num = np.diagonal(jacobian_square)
         # u = 0.01 * np.max(diagonal_num) # τ = 0.01 here
         u = 0.03
-        v = 2
 
         for i in range(max_iterations):
             print("Runing iteration %d..." % (i + 1))
@@ -199,7 +198,7 @@ class GeneralIcp():
             # L_delta is always positive, so we don't want it to be zero
             L_delta = np.linalg.norm(
                 0.5 * pose_delta *
-                (u * pose_delta.T - g)) / (residual_vec.shape[0] / 3) + 1e-5
+                (u * pose_delta.T - g)) / (residual_vec.shape[0] / 3)
 
             print('F_temp_x= %.2f' % F_temp_x, '  F_x= %.2f' % F_x,
                   '  F_delta= %.2f' % F_delta, '  L_delta= %.2f' % L_delta)
