@@ -188,16 +188,16 @@ class GeneralIcp():
                 temp_correspondences)
 
             # calculate true loss delta
-            F_temp_x = np.linalg.norm(temp_residual_vec) / (
+            F_temp_x = np.linalg.norm(temp_residual_vec)**2 / (
                 temp_residual_vec.shape[0] / 3)
-            F_x = np.linalg.norm(residual_vec) / (residual_vec.shape[0] / 3)
-            F_delta = F_x - F_temp_x
+            F_x = np.linalg.norm(residual_vec)**2 / (residual_vec.shape[0] / 3)
+            F_delta = 0.5 * (F_x - F_temp_x)
 
             # calculate theory loss delta
             g = -1 * b
             # L_delta is always positive, so we don't want it to be zero
-            L_delta = np.linalg.norm(
-                0.5 * pose_delta *
+            L_delta = 0.5 * np.linalg.norm(
+                 pose_delta *
                 (u * pose_delta.T - g)) / (residual_vec.shape[0] / 3)
 
             print('F_temp_x= %.2f' % F_temp_x, '  F_x= %.2f' % F_x,
@@ -210,14 +210,15 @@ class GeneralIcp():
 
             if (r > 0):  # accept pose_delta
                 self.transform_ = temp_transform.Copy()
-                if r < 0.25:  # oh, the first order Taylor expansion step is too large, reduce step
-                    u = u * 2. 
-                elif r > 0.75: # first order Taylor expansion step is a little small, increase step
-                    u = u / 3.   
+                if r < 0.25:  # oh, the first order Taylor expansion step is too large,
+                    u = u * 2. # because the truth = F-F_temp is much smaller than it. reduce trust region
+                               # to increase approximation quality
+                        
+                elif r > 0.75: # first order Taylor expansion step is a little small, 
+                    u = u / 3.  # because the truth = F-F_temp may be bigger than it. 
                 else:
-                    pass # approximate to the GN
-                # u = u*np.max(np.array([1./3, 1-(2*r-1)**3]))
-                v = 2
+                    pass # approximate is good, no need to update u 
+
                 trans_delta = np.linalg.norm(
                     self.transform_.CalculateTranslationDelta(last_transform))
                 print('trans_delta = ', trans_delta)
@@ -242,14 +243,13 @@ class GeneralIcp():
 
                 last_transform = self.transform_.Copy()
 
-            else:  # current pose_delta is unacceptable
-                u *= v
-                v *= 2
+            else:  # current pose_delta is unacceptable, decrease trust region
+                u *= 2
 
             if (self.debug_mode_):
                 ShowCorrespondences(self.target_pc_, changed_source_pc,
                                     correspondences, 'Show correspondences')
-            print('u= %.2f, v= %.2f' % (u, v))
+            print('u= %.2f'%u)
 
         # No converge
         print('ICP run failed!\n')
