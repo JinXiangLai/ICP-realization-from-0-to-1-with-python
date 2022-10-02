@@ -212,9 +212,9 @@ class GeneralIcp():
             if (r > 0):  # accept pose_delta
                 self.transform_ = temp_transform.Copy()
                 if r < 0.25:  # oh, the first order Taylor expansion step is too large, reduce step
-                    u = u * 2 
+                    u = u * 2. 
                 elif r > 0.75: # first order Taylor expansion step is a little small, increase step
-                    u = u / 3   
+                    u = u / 3.   
                 else:
                     pass # approximate to the GN
                 # u = u*np.max(np.array([1./3, 1-(2*r-1)**3]))
