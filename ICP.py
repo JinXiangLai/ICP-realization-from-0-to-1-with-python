@@ -188,17 +188,16 @@ class GeneralIcp():
                 temp_correspondences)
 
             # calculate true loss delta
-            F_temp_x = np.linalg.norm(temp_residual_vec)**2 / (
+            F_temp_x = np.matmul(temp_residual_vec.reshape(-1,1).T, temp_residual_vec.reshape(-1,1)) / (
                 temp_residual_vec.shape[0] / 3)
-            F_x = np.linalg.norm(residual_vec)**2 / (residual_vec.shape[0] / 3)
+            F_x = np.matmul(residual_vec.reshape(-1,1).T, residual_vec.reshape(-1,1)) / (residual_vec.shape[0] / 3)
             F_delta = 0.5 * (F_x - F_temp_x)
 
             # calculate theory loss delta
             g = -1 * b
-            # L_delta is always positive, so we don't want it to be zero
-            L_delta = 0.5 * np.linalg.norm(
-                 pose_delta *
-                (u * pose_delta.T - g)) / (residual_vec.shape[0] / 3)
+            L_delta = 0.5 * np.matmul(
+                 pose_delta.reshape(-1,1).T *
+                (u * pose_delta.reshape(-1,1) - g)) / (residual_vec.shape[0] / 3)
 
             print('F_temp_x= %.2f' % F_temp_x, '  F_x= %.2f' % F_x,
                   '  F_delta= %.2f' % F_delta, '  L_delta= %.2f' % L_delta)
@@ -216,8 +215,6 @@ class GeneralIcp():
                         
                 elif r > 0.75: # first order Taylor expansion step is a little small, 
                     u = u / 3.  # because the truth = F-F_temp may be bigger than it. 
-                else:
-                    pass # approximate is good, no need to update u 
 
                 trans_delta = np.linalg.norm(
                     self.transform_.CalculateTranslationDelta(last_transform))
